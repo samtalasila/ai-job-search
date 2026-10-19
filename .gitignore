@@ -119,3 +119,16 @@ company_research/*.json
 
 # Brainstorm mockups (superpowers visual companion) - never ship
 .superpowers/
+
+# Trigger scout (bolt-on): the real firm roster is personal - never commit it.
+# Ship only roster.example.csv.
+roster.csv
+
+# Trigger scout state (seen signals). Depth-independent like the job_scraper
+# rules above: the skill resolves trigger_scraper/ relative to its own
+# directory, so these land at .claude/skills/trigger-scout/trigger_scraper/*.
+**/trigger_scraper/seen_triggers.json
+
+# Staged lead rows awaiting approval (personal output, register-ready)
+trigger_staging_*.csv
+trigger_tracker.csv

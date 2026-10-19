@@ -1,0 +1,1 @@
+{"bin":{"osfi-watch":"./src/cli.ts"},"description":"Trigger-source CLI: list and search OSFI announcements","name":"osfi-watch","type":"module","version":"1.0.0"}
