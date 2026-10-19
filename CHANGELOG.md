@@ -13,6 +13,21 @@ per-file diff commands.
 
 ## [Unreleased]
 
+### Removed
+
+- **Job-search workflow removed; the repo is now trigger-scout only** - the
+  CV/cover-letter pipeline (`cv/`, `cover_letters/`, `templates/`,
+  `documents/`, `assets/`), the apply/rank/interview/outcome/upskill
+  commands and skills, all six job-portal CLIs, the salary and PDF tooling,
+  and the LaTeX CI jobs are gone. What remains: the trigger-scout skill and
+  rubric, the `osfi-watch` source module, the `/triggers` command,
+  `tools/trigger_key.py`, and the lint/security/test CI jobs. `README.md`,
+  `SETUP.md`, `AGENTS.md`, `SECURITY.md`, `.gitignore`, and
+  `.claude/settings.json` were rewritten for trigger detection; the
+  security guards' allowlists now pin the trigger-scout permissions and
+  personal-data ignore rules. Job-search test files were replaced by
+  `tests/test_trigger_key.py`.
+
 ### Added
 
 - **One cross-platform command installs every portal CLI: `python3 tools/install_portal_clis.py`**
