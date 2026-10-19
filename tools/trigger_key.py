@@ -38,7 +38,18 @@ def key(company: str, signal: str, url: str) -> str:
     return f"{slug(company)}--{slug(signal)}--{hashlib.sha256((url or '').encode('utf-8')).hexdigest()[:10]}"
 
 
+def _force_utf8_stdio() -> None:
+    """Windows pipes default to the ANSI code page; a non-Latin company or
+    signal name would die with UnicodeEncodeError before the key prints."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
 def main() -> int:
+    _force_utf8_stdio()
     ap = argparse.ArgumentParser()
     ap.add_argument("--company", default="")
     ap.add_argument("--signal", default="")

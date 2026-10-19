@@ -174,6 +174,11 @@ def gate(url):
     return 0, 'ALLOWED - robots.txt permits this path'
 
 if __name__ == '__main__':
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     if len(sys.argv) != 2:
         print('usage: python3 tools/robots_check.py <url>', file=sys.stderr)
         sys.exit(2)

@@ -258,6 +258,11 @@ def check_tracked_node_modules() -> None:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     check_permissions()
     check_gitignore()
     check_package_manifests()
