@@ -30,8 +30,15 @@ roster.csv  x  trigger sources  x  trigger rubric  ->  ranked triggers  ->  stag
 
 ### Step 0: Load State
 
-1. Read `roster.csv` (repo root). If missing, fall back to `roster.example.csv`
-   and say so up front: example firms produce example triggers, nothing real.
+1. Resolve the roster. Check in order:
+   a. the `TRIGGER_ROSTER` environment variable (absolute path; use it when
+      set),
+   b. `roster.csv` at the repo root (local, gitignored),
+   c. `roster.example.csv`, and say so up front: example firms produce
+      example triggers, nothing real.
+   The canonical roster may live outside this repo (e.g. next to the CRM
+   register in a private repo); the skill only needs read access to the
+   resolved path.
 2. Read `.claude/skills/trigger-scout/01-trigger-rubric.md` once. It is the
    single source of truth for what counts as a trigger.
 3. Read `trigger_scraper/seen_triggers.json` (create if missing, start with
@@ -134,7 +141,9 @@ CRM is a separate, explicitly approved step.
    the email empty with confidence `unknown`. Never invent a format. The
    two-bounce stop-guessing rule stands.
 5. **The real roster never ships.** `roster.csv` is gitignored. Only
-   `roster.example.csv` is committed.
+   `roster.example.csv` is committed. A canonical roster kept elsewhere (e.g.
+   the private CRM repo, read via `TRIGGER_ROSTER`) is likewise never
+   committed here.
 6. **A posting proves hiring intent**, not a broken workflow or willingness to
    outsource. Hiring signals need a second corroborating signal to score above
    watchlist.

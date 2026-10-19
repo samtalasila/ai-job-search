@@ -12,7 +12,9 @@ roster.csv  x  trigger sources  x  trigger rubric  ->  ranked triggers  ->  stag
 
 ## Quick start
 
-1. Copy `roster.example.csv` to `roster.csv` and fill in real firms.
+1. Point the scout at a roster: copy `roster.example.csv` to `roster.csv`
+   and fill in real firms, or set `TRIGGER_ROSTER` to the absolute path of a
+   canonical roster kept elsewhere (e.g. next to the CRM register).
    `roster.csv` is gitignored; it never ships.
 2. Run `/triggers`.
 3. Review the ranked table, approve rows, and append the staged CSV to your
