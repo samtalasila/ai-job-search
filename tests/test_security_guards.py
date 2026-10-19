@@ -242,9 +242,14 @@ class GitignoreGuardTests(GuardRepoFixture):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_generated_report_rules_are_required(self):
-        # Reports are generated from the user's tracker and application archive,
-        # so losing these ignore rules can expose personal job-search history.
-        sensitive_outputs = ["reports/", "upskill/*.md", "**/upskill/report-*.md"]
+        # Staged rows are register-ready output derived from the user's firm
+        # roster, so losing these ignore rules can expose personal CRM data.
+        sensitive_outputs = [
+            "roster.csv",
+            "**/trigger_scraper/seen_triggers.json",
+            "trigger_staging_*.csv",
+            "trigger_tracker.csv",
+        ]
         remaining = [
             rule
             for rule in security_guards.REQUIRED_IGNORE_RULES
@@ -255,9 +260,8 @@ class GitignoreGuardTests(GuardRepoFixture):
         result = run_guards(self.root)
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("reports/", result.stdout)
-        self.assertIn("upskill/*.md", result.stdout)
-        self.assertIn("**/upskill/report-*.md", result.stdout)
+        for rule in sensitive_outputs:
+            self.assertIn(rule, result.stdout)
 
 
 class GitignorePatternBehaviorTests(unittest.TestCase):
@@ -276,18 +280,17 @@ class GitignorePatternBehaviorTests(unittest.TestCase):
         )
         shutil.copy(REPO_ROOT / ".gitignore", self.root / ".gitignore")
 
-    def test_upskill_reports_ignored_at_depth_but_skill_md_stays_tracked(self):
-        # The upskill skill resolves `upskill/` relative to its own directory
-        # (the same observed behavior the **/job_scraper rules exist for), so a
-        # report must be ignored at that depth too. The skill's own SKILL.md
-        # lives in a directory that shares the `upskill` name, so a broad
-        # `**/upskill/*.md` would ignore the template's own skill file - this
-        # pins that it stays tracked.
+    def test_seen_state_ignored_at_depth_but_example_roster_stays_tracked(self):
+        # The trigger-scout skill resolves `trigger_scraper/` relative to its
+        # own directory, so seen-signal state must be ignored at that depth
+        # too. The example roster ships with the framework, so it must stay
+        # trackable while the real roster is ignored.
         cases = {
-            "upskill/report-2026-08-11.md": True,
-            ".claude/skills/upskill/upskill/report-2026-08-11.md": True,
-            ".claude/skills/upskill/upskill/report-2026-08-11-acme-engineer.md": True,
-            ".claude/skills/upskill/SKILL.md": False,
+            ".claude/skills/trigger-scout/trigger_scraper/seen_triggers.json": True,
+            "roster.csv": True,
+            "trigger_staging_2026-10-19.csv": True,
+            "trigger_tracker.csv": True,
+            "roster.example.csv": False,
         }
         for path, expect_ignored in cases.items():
             with self.subTest(path=path):
@@ -301,54 +304,22 @@ class GitignorePatternBehaviorTests(unittest.TestCase):
                     f"{path}: expected ignored={expect_ignored}",
                 )
 
-    def test_interview_prep_pack_is_ignored_at_the_path_the_command_writes(self):
-        # Derived, never copied: a hardcoded prep-pack path pins only that
-        # documents/applications/** still matches that shape - which the
-        # presence guard already catches - and stays green if /interview moves
-        # its output, leaving .gitignore's comment stale exactly the way #336
-        # found it. Reading the path back from the command spec is what makes
-        # the move fail here instead.
-        # Two fragments, not one literal: #329 split the path across Step 1
-        # (which derives the archive folder) and Step 3 (which names the file),
-        # so either half can move independently and each must be pinned.
-        folder = "documents/applications/<company>_<role>/"
-        filename = "interview_prep_<stage>.md"
-        spec = (REPO_ROOT / ".claude" / "commands" / "interview.md").read_text(encoding="utf-8")
-        for fragment in (folder, filename):
-            # assertTrue, not assertIn: the haystack is the whole command spec,
-            # and dumping it buries the one sentence explaining the failure.
-            self.assertTrue(
-                fragment in spec,
-                f"/interview no longer writes {fragment}; .gitignore's comment is now stale",
-            )
-
-        path = folder.replace("<company>_<role>", "acme_data_scientist") + filename.replace(
-            "<stage>", "technical"
-        )
-        result = subprocess.run(
-            ["git", "-C", str(self.root), "check-ignore", "-v", path],
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(result.returncode, 0, f"{path}: not ignored by the shipped .gitignore")
-        self.assertIn("documents/applications/**", result.stdout)
-
 
 class GitignoreNegationTests(GuardRepoFixture):
     def test_negation_reincluding_personal_data_fails(self):
-        # .gitignore is order-sensitive: `!salary_data.json` after the
-        # `salary_data.json` rule re-includes the file, so the required rule is
+        # .gitignore is order-sensitive: `!roster.csv` after the
+        # `roster.csv` rule re-includes the file, so the required rule is
         # still present but no longer takes effect. Set membership on the
         # required rules cannot see this, so the negation must be rejected.
-        self.write_gitignore(list(security_guards.REQUIRED_IGNORE_RULES) + ["!salary_data.json"])
+        self.write_gitignore(list(security_guards.REQUIRED_IGNORE_RULES) + ["!roster.csv"])
         result = run_guards(self.root)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("negation rule not in the reviewed allowlist", result.stdout)
-        self.assertIn("!salary_data.json", result.stdout)
+        self.assertIn("!roster.csv", result.stdout)
 
     def test_allowlisted_negations_pass(self):
-        # The template's own benign negations (example CV/cover letter, fonts,
-        # .gitkeep placeholders) must keep passing.
+        # This repo ships no benign negations; the allowlist is empty by
+        # design, so the required rules alone must keep passing.
         self.write_gitignore(
             list(security_guards.REQUIRED_IGNORE_RULES)
             + sorted(security_guards.ALLOWED_IGNORE_NEGATIONS)
