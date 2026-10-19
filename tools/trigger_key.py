@@ -19,7 +19,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-STATE = ROOT / "trigger_scraper" / "seen_triggers.json"
+# Mirrors the path the trigger-scout skill resolves: trigger_scraper/ relative
+# to the skill's own directory.
+STATE = ROOT / ".claude" / "skills" / "trigger-scout" / "trigger_scraper" / "seen_triggers.json"
 MAX_SLUG = 60
 
 
